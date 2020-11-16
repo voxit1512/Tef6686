@@ -6,30 +6,10 @@ TEF6686 lithio 1.02 patch 2.22 AM FM XDR-GTK 1.0
   Stereo on/off
   Signal measurement improvements
   Keep filter (to do) and frequency settings when switching from AM to FM / FM to AM
-   
+  On dixing.org a bug was found in the settings for the tef corrected in this version.
+  Now we can test different settings.
   
-  Special thanks to Konrad Kosmatka, author of the original version for Sony XDR-F1HD
-  https://fmdx.pl/xdr-i2c/
-  https://fmdx.pl/xdr-gtk/
-  Thanks also to ( in alphabetical order ):
-  - RTVDXRO made AM possible, his version was the base for this version https://github.com/RTVDXRO/NXP-TEF6686-Arduino-Radio
-  - ace919
-  - Brian Beezley
-  - dxhdtv
-  - eggplant886
-  - fmdxbp
-  - Jan Kolar
-  - Marcin Wołoszczuk
-  - Mihai Popa
-  - Nicu Florica
-  - OO7/Ro
-  - Olivier Guillaume
-  - Przemysław Korpas
-  - Sergey / makserge
-  and many others ...
-  Tested on Arduino Nano V3.0 at 5V
-*/
-
+  
 
 /* Filtersettings at the moment
 XDR-GTK/XDR filter index to TEF6686 filter  *=XDR-GTK
@@ -65,3 +45,5 @@ Auto   Auto
 298k   311k  37.3k   8k 
 309k   311k  38.6k   8k 
 */
+
+Thanks to all who helped with this piece of software and of course the orginal writer.
