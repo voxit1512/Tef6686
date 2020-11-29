@@ -1,13 +1,15 @@
-TEF6686 lithio 1.02 patch 2.22 AM FM XDR-GTK 1.0
+  TEF6686 lithio 1.02 patch 2.22 AM FM XDR-GTK 1.0
   by VoXiTPro
   changes: 
   all warnings are removed  (unsigned int to signed int did go wrong)
-  Filters are now switchable
+  Filters are now switchable (AUTO is max 236khz, manual you can set 311Khz)
   Stereo on/off
   Signal measurement improvements
   Keep filter (to do) and frequency settings when switching from AM to FM / FM to AM
   Settings are now from Eustake (marsel90)
-  AGC is now switchable (Only for FM, AM to do)
+  AGC is now switchable (now for FM/AM and reversed the settings) 
+  Removed some settings from Eustake, FMSI stereo improvement only for tef6687 and tef6689, Softmute_mod AM only, Wavegen and I2S audio (only using internal audio)
+  You can now change settings with the antenne switch ANT A = default settings, ANT B = Improved settings, ANT C = Eustake Settings
   
   Special thanks to Konrad Kosmatka, author of the original version for Sony XDR-F1HD
   https://fmdx.pl/xdr-i2c/
