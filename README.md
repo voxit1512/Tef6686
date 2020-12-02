@@ -10,6 +10,10 @@
   AGC is now switchable (now for FM/AM and reversed the settings) 
   Removed some settings from Eustake, FMSI stereo improvement only for tef6687 and tef6689, Softmute_mod AM only, Wavegen and I2S audio (only using internal audio)
   You can now change settings with the antenne switch ANT A = default settings, ANT B = Improved settings, ANT C = Eustake Settings
+  Settings are now A,B,C from eustake. D are improved settings from prog manual.
+  AGC, Deemphasis, IF+ RF+ are now in subroutines so you can set them at other moments. If you change settings the old values will be reapplied.
+  IF+ RF+ works now also for AM.
+  Squelch will change volumescale for AM.  But it will not keep the settings after restart like volume :(. 
   
   Special thanks to Konrad Kosmatka, author of the original version for Sony XDR-F1HD
   https://fmdx.pl/xdr-i2c/
