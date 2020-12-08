@@ -14,8 +14,14 @@
   Settings are now A,B,C from eustake. D are improved settings from prog manual.
   AGC, Deemphasis, IF+ RF+ are now in subroutines so you can set them at other moments. If you change settings the old values will be reapplied.
   IF+ RF+ works now also for AM.
-  Squelch will change volumescale for AM.  But it will not keep the settings after restart like volume :(. 
-  
+  Squelch will change volume scale for AM.  if you have the right value change the define AM_VOL_SCALE too that value (now -1)
+*/  
+#define AM_VOL_SCALE -1
+/*  
+ If you have changed the above value squelch will be off again.
+ Switching from AM to FM or from FM to AM filter settings are kept
+ 
+
   Special thanks to Konrad Kosmatka, author of the original version for Sony XDR-F1HD
   https://fmdx.pl/xdr-i2c/
   https://fmdx.pl/xdr-gtk/
@@ -27,6 +33,7 @@
   and many others ...
   Tested on Arduino Nano V3.0 at 5V
 */
+
 
 
 /* Filtersettings at the moment
@@ -101,6 +108,8 @@ int8_t Squelch;
 int8_t Setsquelch;
 int16_t nDeemphasis, volume;
 uint32_t freq;
+int8_t Filter_AM = 127;
+int8_t Filter_FM = 127;
 
 /* Scan */
 uint16_t scan_start = 0;
@@ -462,45 +471,44 @@ static const uint8_t INIT_EUS2[] PROGMEM =
   0x09, 0x20, 0x18, 0x01, 0x00, 0x48, 0x00, 0x48, 0x06, 0x7C,                                                  // FM 24 Set_NoiseBlanker_Options   (1, 75, 75, 1660)
   0x05, 0x20, 0x1F, 0x01, 0x01, 0xF4,                                                                          // FM 31 Set_Deemphasis             (1, 500) 
   0x11, 0x20, 0x26, 0x01, 0xFF, 0xEC, 0xFF, 0xE2, 0xFF, 0xD8, 0xFF, 0xCE, 0xFF, 0xC4, 0xFF, 0xC4, 0xFF, 0xC4,  // FM 38 Set_LevelStep              (1, -20, -30, -40, -50, -60, -60, -60) default  
-  0x05, 0x20, 0x27, 0x01, 0x00, 0x00,                                                                          // FM 39 Set_LevelOffset            (1, 0)                                 default
   0x0B, 0x20, 0x28, 0x01, 0x00, 0x64, 0x01, 0x90, 0x00, 0x0A, 0x00, 0x14,                                      // FM 40 Set_Softmute_Time          (1, 100, 400, 10, 20)   
-  0x09, 0x20, 0x29, 0x01, 0x00, 0xB4, 0x00, 0x78, 0x01, 0x04,                                                               
-  0x09, 0x20, 0x2A, 0x01, 0x00, 0x03, 0x00, 0x64, 0x00, 0xDC,                                                  // FM 42 Set_Softmute_Level         (1, 3, 100, 220)          
-  0x09, 0x20, 0x2B, 0x01, 0x00, 0x03, 0x01, 0x90, 0x03, 0xE8,                                                  // FM 43 Set_Softmute_Noise         (1, 3, 400, 1000)       
-  0x09, 0x20, 0x2C, 0x01, 0x00, 0x03, 0x01, 0x90, 0x03, 0xE8,                                                  // FM 44 Set_Softmute_Mph           (1, 3, 400, 1000)       
+  0x0B, 0x20, 0x29, 0x01, 0x00, 0x01, 0x00, 0xB4, 0x00, 0x78, 0x01, 0x04,                                      // FM 41 Set_Softmute_ Mod          (1, 1, 180, 120, 260)-071220
+  0x09, 0x20, 0x2A, 0x01, 0x00, 0x01, 0x00, 0x64, 0x00, 0xDC,                                                  // FM 42 Set_Softmute_Level         (1, 1, 100, 220)-071220          
+  0x09, 0x20, 0x2B, 0x01, 0x00, 0x01, 0x01, 0x90, 0x03, 0xE8,                                                  // FM 43 Set_Softmute_Noise         (1, 1, 400, 1000)-071220       
+  0x09, 0x20, 0x2C, 0x01, 0x00, 0x01, 0x01, 0x90, 0x03, 0xE8,                                                  // FM 44 Set_Softmute_Mph           (1, 1, 400, 1000)-071220       
   0x07, 0x20, 0x2D, 0x01, 0x00, 0x01, 0x01, 0x90,                                                              // FM 45 Set_Softmute_Max           (1, 1, 400)             
   0x0B, 0x20, 0x32, 0x01, 0x00, 0xC8, 0x01, 0xF4, 0x00, 0x0A, 0x00, 0x50,                                      // FM 50 Set_Highcut_Time           (1, 200, 500, 10, 80)   
   0x0B, 0x20, 0x33, 0x01, 0x00, 0x01, 0x00, 0xFA, 0x00, 0x82, 0x01, 0xF4,                                      // FM 51 Set_Highcut_ Mod           (1, 1, 250, 130, 500)   
-  0x09, 0x20, 0x34, 0x01, 0x00, 0x03, 0x00, 0xC8, 0x01, 0x2C,                                                  // FM 52 Set_Highcut_Level          (1, 3, 200, 300)        
-  0x09, 0x20, 0x35, 0x01, 0x00, 0x03, 0x01, 0x90, 0x00, 0xC8,                                                  // FM 53 Set_Highcut_Noise          (1, 3, 400, 200)-011220        
-  0x09, 0x20, 0x36, 0x01, 0x00, 0x03, 0x01, 0x90, 0x00, 0xC8,                                                  // FM 54 Set_HighCut_Mph            (1, 3, 400, 200)-011220        
-  0x07, 0x20, 0x37, 0x01, 0x00, 0x01, 0x0A, 0x28,                                                              // FM 55 Set_HighCut_Max            (1, 1, 2600)-011220          
+  0x09, 0x20, 0x34, 0x01, 0x00, 0x01, 0x00, 0xC8, 0x01, 0x2C,                                                  // FM 52 Set_Highcut_Level          (1, 1, 200, 300)        
+  0x09, 0x20, 0x35, 0x01, 0x00, 0x01, 0x01, 0x90, 0x00, 0xC8,                                                  // FM 53 Set_Highcut_Noise          (1, 1, 400, 200)-071220        
+  0x09, 0x20, 0x36, 0x01, 0x00, 0x01, 0x01, 0x90, 0x00, 0xC8,                                                  // FM 54 Set_HighCut_Mph            (1, 1, 400, 200)-071220        
+  0x07, 0x20, 0x37, 0x01, 0x00, 0x01, 0x0A, 0x28,                                                              // FM 55 Set_HighCut_Max            (1, 1, 2600)-071220          
   0x07, 0x20, 0x38, 0x01, 0x00, 0x01, 0x3A, 0x98,                                                              // FM 56 Set_Highcut_Min            (1, 1, 15000)           
   0x07, 0x20, 0x39, 0x01, 0x00, 0x01, 0x00, 0x64,                                                              // FM 57 Set_Lowcut_Max             (1, 1, 100)             
   0x07, 0x20, 0x3A, 0x01, 0x00, 0x01, 0x00, 0x0A,                                                              // FM 58 Set_Lowcut_Min             (1, 1, 10)              
   0x05, 0x20, 0x3B, 0x01, 0x00, 0x03,                                                                          // FM 59 Set_Highcut_Options        (1, 3)                   
   0x0B, 0x20, 0x3C, 0x01, 0x00, 0xC8, 0x07, 0xD0, 0x00, 0x14, 0x00, 0x50,                                      // FM 60 Set_Stereo_Time            (1, 200, 2000, 20, 80)       
   0x0B, 0x20, 0x3D, 0x01, 0x00, 0x01, 0x01, 0xA4, 0x01, 0x40, 0x03, 0xE8,                                      // FM 61 Set_Stereo_Mod             (1, 1, 420, 320, 1000)        
-  0x09, 0x20, 0x3E, 0x01, 0x00, 0x03, 0x01, 0xCC, 0x00, 0xF0,                                                  // FM 62 Set_Stereo_Level           (1, 3, 460, 240)            
-  0x09, 0x20, 0x3F, 0x01, 0x00, 0x03, 0x00, 0x8C, 0x00, 0xB4,                                                  // FM 63 Set_Stereo_Noise           (1, 3, 140, 180)            
-  0x09, 0x20, 0x40, 0x01, 0x00, 0x03, 0x01, 0x78, 0x00, 0xDC,                                                  // FM 64 Set_Stereo_Mph             (1, 3, 376, 220)            
+  0x09, 0x20, 0x3E, 0x01, 0x00, 0x01, 0x01, 0x2C, 0x01, 0x2C,                                                  // FM 62 Set_Stereo_Level           (1, 1, 300, 300)-071220            
+  0x09, 0x20, 0x3F, 0x01, 0x00, 0x01, 0x03, 0x20, 0x00, 0x64,                                                  // FM 63 Set_Stereo_Noise           (1, 1, 800, 100)-071220         
+  0x09, 0x20, 0x40, 0x01, 0x00, 0x01, 0x03, 0x20, 0x00, 0x64,                                                  // FM 64 Set_Stereo_Mph             (1, 1, 800, 100)-071220           
   0x05, 0x20, 0x41, 0x01, 0x00, 0x01,                                                                          // FM 65 Set_Stereo_Max             (1, 1)                      
-  0x07, 0x20, 0x42, 0x01, 0x00, 0x01, 0x01, 0x90,                                                              // FM 66 Set_Stereo_Min             (1, 1, 400)                 
-  0x0B, 0x20, 0x46, 0x01, 0x00, 0x78, 0x00, 0xFA, 0x00, 0x50, 0x00, 0xA0,                                      // FM 70 Set_StHiBlend_Time         (1, 120, 250, 80, 10)      
+  0x07, 0x20, 0x42, 0x01, 0x00, 0x01, 0x01, 0x90,                                                              // FM 66 Set_Stereo_Min             (1, 1, 400)        
+  0x0B, 0x20, 0x46, 0x01, 0x00, 0xFA, 0x01, 0xF4, 0x00, 0x32, 0x00, 0x32,                                      // FM 70 Set_StHiBlend_Time         (1, 250, 500, 50, 50)-071220      
   0x0B, 0x20, 0x47, 0x01, 0x00, 0x01, 0x00, 0xF0, 0x00, 0x78, 0x02, 0x9E,                                      // FM 71 Set_StHiBlend_Mod          (1, 1, 240, 120, 670)       
-  0x09, 0x20, 0x48, 0x01, 0x00, 0x03, 0x01, 0x2C, 0x00, 0x78,                                                  // FM 72 Set_StHiBlend_Level        (1, 3, 300, 120)            
-  0x09, 0x20, 0x49, 0x01, 0x00, 0x03, 0x01, 0x90, 0x00, 0xB4,                                                  // FM 73 Set_StHiBlend_Noise        (1, 3, 400, 180)-011220             
-  0x09, 0x20, 0x4A, 0x01, 0x00, 0x03, 0x01, 0x90, 0x00, 0xB4,                                                  // FM 74 Set_StHiBlend_Mph          (1, 3, 400, 180)-011220               
+  0x09, 0x20, 0x48, 0x01, 0x00, 0x03, 0x01, 0x2C, 0x01, 0x2C,                                                  // FM 72 Set_StHiBlend_Level        (1, 1, 300, 300)-071220           
+  0x09, 0x20, 0x49, 0x01, 0x00, 0x01, 0x03, 0x20, 0x00, 0x64,                                                  // FM 73 Set_StHiBlend_Noise        (1, 1, 800, 100)-071220             
+  0x09, 0x20, 0x4A, 0x01, 0x00, 0x01, 0x03, 0x20, 0x00, 0x64,                                                  // FM 74 Set_StHiBlend_Mph          (1, 1, 800, 100)-071220               
   0x07, 0x20, 0x4B, 0x01, 0x00, 0x01, 0x0A, 0xBC,                                                              // FM 75 Set_StHiBlend_Max          (1, 1, 2748)                
   0x07, 0x20, 0x4C, 0x01, 0x00, 0x01, 0x3A, 0x98,                                                              // FM 76 Set_StHiBlend_Min          (1, 1, 15000)                
   0x05, 0x20, 0x56, 0x01, 0x05, 0x32,                                                                          // FM 86 Set_Bandwidth_Options      (1, 1330)
-  0x07, 0x20, 0x5A, 0x01, 0x00, 0x64, 0x00, 0x1E,                                                              // FM_Set_StBandBlend_Time
-  0x0B, 0x20, 0x5B, 0x01, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0xDC,                                      // FM_Set_StBandBlend_Gain
-  0x0B, 0x20, 0x5C, 0x01, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0xFA,                                      // FM_Set_StBandBlend_Bias
-  0x0F, 0x30, 0x18, 0x01, 0x00, 0x05, 0x00, 0x00, 0xFF, 0x9C, 0x01, 0x90, 0xFF, 0x38, 0x03, 0xE8,              // AUDIO_Set_WaveGen
-  0x0D, 0x30, 0x16, 0x01, 0x00, 0x21, 0x00, 0x02, 0x00, 0x20, 0x01, 0x00, 0x12, 0xC0,                          // AUDIO_Set_Dig_IO
-  0x07, 0x30, 0x0D, 0x01, 0x00, 0x80, 0x00, 0xE0,                                                              // AUDIO_Set_Output_Source
-  0x0B, 0x20, 0x86, 0x01, 0x00, 0x00, 0x01, 0x9A, 0x03, 0xB6, 0x03, 0xE8,                                      // FM_Get_Processing_Status
+//  0x07, 0x20, 0x5A, 0x01, 0x00, 0x64, 0x00, 0x1E,                                                              // FM_Set_StBandBlend_Time
+//  0x0B, 0x20, 0x5B, 0x01, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0xDC,                                      // FM_Set_StBandBlend_Gain          (1, 1500, 1500, 1500, 1500)
+//  0x0B, 0x20, 0x5C, 0x01, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0xFA,                                      // FM_Set_StBandBlend_Bias
+//  0x0F, 0x30, 0x18, 0x01, 0x00, 0x05, 0x00, 0x00, 0xFF, 0x9C, 0x01, 0x90, 0xFF, 0x38, 0x03, 0xE8,              // AUDIO_Set_WaveGen
+//  0x0D, 0x30, 0x16, 0x01, 0x00, 0x21, 0x00, 0x02, 0x00, 0x20, 0x01, 0x00, 0x12, 0xC0,                          // AUDIO_Set_Dig_IO
+//  0x07, 0x30, 0x0D, 0x01, 0x00, 0x80, 0x00, 0xE0,                                                              // AUDIO_Set_Output_Source
+//  0x0B, 0x20, 0x86, 0x01, 0x00, 0x00, 0x01, 0x9A, 0x03, 0xB6, 0x03, 0xE8,                                      // FM_Get_Processing_Status
   0
 };
 
@@ -836,6 +844,10 @@ void setup()
   while (Serial.available() > 0)
     Serial.read();  // clear the serial buffer
   Serial.print("\nOK\n");
+  if (AM_VOL_SCALE != -1) {
+    int SetVolScale = map(AM_VOL_SCALE, 0, 100, -120, 60);
+    Set_Cmd(33, 80, 1, SetVolScale);
+  }
 }
 
 void loop()
@@ -878,7 +890,6 @@ void loop()
       timer_DATA = millis();
     }
   }
-
 
   if (Serial.available() > 0)
   {
@@ -955,8 +966,10 @@ void loop()
             Serial.println("M0");
             Serial.print('T');
             Serial.println(MODF_FREQ);
-            current_filter = -1;
-            Set_Cmd(32, 10, 4, 1, 2360, 1000, 1000);
+            if (Filter_AM != 127) {Filter_AM = current_filter;} 
+			      if (Filter_FM == 127) {Filter_FM = -1;}
+			      current_filter = Filter_FM;
+            Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, pgm_read_word_near(FMFilterMap + current_filter), 1000, 1000);
             radio_mode = 0;
           } else {
             if (MODA_FREQ == 0){MODA_FREQ = 522;} 
@@ -964,7 +977,10 @@ void loop()
             Serial.println("M1");
             Serial.print('T');
             Serial.println(MODA_FREQ);
-            current_filter = 21;
+			      Filter_FM = current_filter;
+	          if (Filter_FM != 127) {Filter_FM = current_filter;} 
+   	        if (Filter_AM == 127) {Filter_AM = 21;}
+            current_filter = Filter_AM;
             Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
             radio_mode = 1;
           }
@@ -983,8 +999,10 @@ void loop()
             Serial.print('T');
             Serial.println(REG_FREQ);
             if (radio_mode == 1) {                         // from AM to FM then switch to adaptive filter AUTO in xdr-gtk
-              current_filter = -1;
-              Set_Cmd(32, 10, 4, 1, 2360, 1000, 1000);
+              if (Filter_AM != 127) {Filter_AM = current_filter;} 
+			        if (Filter_FM == 127) {Filter_FM = -1;}
+			        current_filter = Filter_FM;
+              Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, pgm_read_word_near(FMFilterMap + current_filter), 1000, 1000);
             }
             radio_mode = 0;
             MODF_FREQ = REG_FREQ;
@@ -994,7 +1012,9 @@ void loop()
               Serial.print('T');
               Serial.println(REG_FREQ);
               if (radio_mode == 0) {                       // from FM to AM then use filter 21 3,9khz 4khz   
-                current_filter = 21;
+                if (Filter_FM != 127) {Filter_FM = current_filter;} 
+				        if (Filter_AM == 127) {Filter_AM = 21;}
+                current_filter = Filter_AM;
                 Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
               }
               radio_mode = 1;
@@ -1030,12 +1050,12 @@ void loop()
 
         case 'Q':  // Audio volume scaler
           Squelch = atoi(buff + 1);
-          if (Squelch != 0) {
+          if (Squelch != -1 && AM_VOL_SCALE == -1) {
             int Setsquelch = map(Squelch, 0, 100, -120, 60);
             Set_Cmd(33, 80, 1, Setsquelch);
-           } 
-          Serial.print("Q");
-          Serial.println(Squelch);
+            Serial.print("Q");
+            Serial.println(Squelch);
+          } 
           break;
 
         case 'D':  // Change the de-emphasis
@@ -1080,8 +1100,8 @@ void loop()
           }
           Serial.print('\n');
           Set_AGC_tresshold(AGC_tress);
-          Set_Deempasis(nDeemphasis);
           Set_IF_RF(RFplus,IFplus);
+          Set_Deempasis(nDeemphasis);
           break;
 
        
