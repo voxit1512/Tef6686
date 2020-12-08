@@ -13,7 +13,12 @@
   Settings are now A,B,C from eustake. D are improved settings from prog manual.
   AGC, Deemphasis, IF+ RF+ are now in subroutines so you can set them at other moments. If you change settings the old values will be reapplied.
   IF+ RF+ works now also for AM.
-  Squelch will change volumescale for AM.  But it will not keep the settings after restart like volume :(. 
+  Squelch will change volume scale for AM.  if you have the right value change the define AM_VOL_SCALE too that value (now -1)
+*/  
+#define AM_VOL_SCALE -1
+/*  
+  If you have changed the above value squelch will be off again.
+  Switching from AM to FM or from FM to AM filter settings are kept
   
   Special thanks to Konrad Kosmatka, author of the original version for Sony XDR-F1HD
   https://fmdx.pl/xdr-i2c/
