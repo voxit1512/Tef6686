@@ -738,7 +738,7 @@ void get_DATA()
   Get_Cmd(32, 131, uDATA_Data, 8);
   if ( bitRead(uDATA_Data[0], 15) == 1 )
   {
-    if ((uDATA_Data[5] >> 14) != 255) { 
+    if ((uDATA_Data[5] >> 14) == 0) { 
       Serial.print('P');
       serial_hex(uDATA_Data[1] >> 8);
       serial_hex(uDATA_Data[1]);
