@@ -1,3 +1,12 @@
+  
+  By VoXiTPro  
+  RDS PI check, only correct PI codes are send to TEF-GTK. There were a lof of false pi codes.
+  used latest version from marsel90.
+  #  
+  by Eustake (marsel90)
+  With this sketch it is recommended to use together with GTK-TEF6686 v1.1 https://github.com/marsel90-1/TEF-GTK_v1.1
+  #
+  
   TEF6686 lithio 1.02 patch 2.22 AM FM XDR-GTK 1.0
   by VoXiTPro
   changes: 
