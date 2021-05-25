@@ -1,9 +1,21 @@
   
   FOR  TEF6686_RDS_PI_check.ino:
   
-  By VoXiTPro  
-  RDS PI check, only correct PI codes are send to TEF-GTK. There were a lof of false pi codes.
+  By VoXiTPro  PA7AP
+  RDS PI check, There were a lof of false pi codes.
   used latest version from marsel90.
+
+  Only correct PI code's are now transferred to tef-gtk.
+  I tested some different settings the tef module has 4 errors indication.
+
+  0 : no error; block data was received with matching data and syndrome
+  1 : small error; possible 1 bit reception error detected; data is corrected
+  2 : large error; theoretical correctable error detected; data is corrected
+  3 : uncorrectable error; no data correction possible
+
+  but even with a small error i did get lot of false PI codes.
+  So i decided to use zero errors.
+
   #  
   by Eustake (marsel90)
   With this sketch it is recommended to use together with GTK-TEF6686 v1.1 https://github.com/marsel90-1/TEF-GTK_v1.1
